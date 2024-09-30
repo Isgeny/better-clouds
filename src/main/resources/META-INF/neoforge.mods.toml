@@ -23,7 +23,7 @@ side = "BOTH"
 [[dependencies.betterclouds]]
 modId = "minecraft"
 type = "required"
-versionRange = "${mc_version}"
+versionRange = "${mc_version_range}"
 ordering = "NONE"
 side = "BOTH"
 

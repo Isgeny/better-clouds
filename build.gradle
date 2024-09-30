@@ -31,6 +31,13 @@ static def buildVersionString(String modVersion, String releaseType, String mcVe
 	return semver
 }
 
+static def trimSuffix(String original, String suffix) {
+	if(original.endsWith(suffix)) {
+		return original.substring(0, original.length() - suffix.length())
+	}
+	return original
+}
+
 version = buildVersionString(property('mod.version').toString(), property('mod.release').toString().toLowerCase(), mcVersion, loader)
 group = project.maven_group
 
@@ -149,8 +156,17 @@ dependencies {
 processResources {
 	var props = [
 		version: project.version,
-		mc_version: findProperty("deps.minecraft.range")
 	]
+	if (isFabric) {
+		props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
+			"\"=$it\""
+		}.join(", ")
+	} else {
+		props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
+			"[$it]"
+		}.join(",")
+	}
+
 
 	props.forEach(inputs::property)
 
@@ -213,12 +229,12 @@ modrinth  { // Make sure it runs after build!
 
 	token.set(secrets.MODRINTH as String)
 	projectId = '5srFLIaK'
-	// Will fail if Modrinth has this version already
+	// Will fail if Modrinth has this version alread
 	versionNumber = "${property('mod.version')}+${mcVersion}-${loader}-${releaseLetter}"
 	versionName = "${releaseName} ${property('mod.version')} for ${mcVersion} ${loaderName}"
 	versionType = "${property('mod.release')}"
 	uploadFile = remapJar
-	gameVersions.add(mcVersion)
+	gameVersions = findProperty("deps.minecraft").toString().split(",").collect { trimSuffix(it, ".0")}
 	loaders.add(loader)
 	dependencies {
 		// A special DSL for creating dependencies
